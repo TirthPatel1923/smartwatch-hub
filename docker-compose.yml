@@ -1,0 +1,87 @@
+version: '3.8'
+
+# Docker Compose for SmartWatch Hub Development
+# Run with: docker-compose up -d
+# Access application: http://localhost:8080
+# Stop with: docker-compose down
+
+services:
+  # PHP/Apache Web Server
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartwatch-hub-web
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: smartwatch_db
+      DB_USER: smartwatch_user
+      DB_PASS: smartwatch_pass
+      SITE_URL: http://localhost:8080/
+      ENVIRONMENT: development
+      DEBUG: "true"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - .:/var/www/html
+      - ./php.ini:/usr/local/etc/php/conf.d/php-custom.ini
+    networks:
+      - smartwatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL Database Server
+  mysql:
+    image: mysql:8.0
+    container_name: smartwatch-hub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: smartwatch_db
+      MYSQL_USER: smartwatch_user
+      MYSQL_PASSWORD: smartwatch_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - smartwatch-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+  # phpMyAdmin for Database Management (optional)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: smartwatch-hub-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: smartwatch_user
+      PMA_PASSWORD: smartwatch_pass
+      PMA_ROOT_PASSWORD: root_password
+    ports:
+      - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - smartwatch-network
+
+networks:
+  smartwatch-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
