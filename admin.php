@@ -496,17 +496,6 @@ $stats = [
             <?php endif; ?>
         </div>
     <?php endif; ?>
-                                <td><?php echo esc($product['brand']); ?></td>
-                                <td><?php echo formatPrice($product['price']); ?></td>
-                                <td><?php echo intval($product['stock']); ?></td>
-                                <td><?php echo esc(substr($product['description'], 0, 40)) . '...'; ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    <?php endif; ?>
 </div>
 
 <?php include 'footer.php'; ?>
