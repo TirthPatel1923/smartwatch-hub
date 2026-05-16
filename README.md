@@ -130,10 +130,37 @@
    - Open XAMPP Control Panel
    - Click "Start" for Apache and MySQL
 
-4. **Access Application**
-   ```
-   http://localhost/SMARTWATCHES/
-   ```
+4. **Open the site in a browser**
+   - Do not open `.php` files directly from the file system.
+   - Use a browser and visit:
+     ```
+     http://localhost/SMARTWATCHES/
+     ```
+   - For the admin panel use:
+     ```
+     http://localhost/SMARTWATCHES/admin.php
+     ```
+
+5. **If MySQL has different credentials**
+   - Copy `.env.example` to `.env`
+   - Update the database values if your XAMPP MySQL user is not `root` or if it has a password
+   - Example:
+     ```env
+     DB_HOST=127.0.0.1
+     DB_PORT=3306
+     DB_NAME=smartwatch_db
+     DB_USER=root
+     DB_PASS=
+     ```
+
+6. **First run behavior**
+   - The app automatically creates the `smartwatch_db` database and required tables on first load.
+   - If XAMPP is running and MySQL is available, no manual import is required.
+
+7. **Access Control**
+   - The login/register links are visible in the navigation bar.
+   - Users must register before logging in.
+   - There is currently no email/SMS OTP sent automatically.
 
 5. **Admin Panel**
    ```
@@ -506,6 +533,8 @@ DEBUG=false
 - ✅ Keyboard Navigation support
 - ✅ ARIA Labels & Live Regions
 - ✅ Database Setup (Auto-creation on first run)
+- ✅ User Authentication (login, registration, password hashing, sessions)
+- ✅ Role-Based Access Control (admin vs user)
 - ✅ Environment Configuration (.env)
 - ✅ Deployment Instructions
 - ✅ Security Measures (CSRF, SQL injection prevention, XSS protection)
@@ -704,7 +733,7 @@ Change these in `config.php` if your MySQL has different credentials.
 
 ## Future Enhancements
 
-- [ ] User login & registration system
+- ✅ User login & registration system
 - [ ] Email notifications for orders
 - [ ] Real payment gateway integration
 - [ ] Product reviews & ratings

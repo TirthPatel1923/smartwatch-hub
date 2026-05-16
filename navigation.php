@@ -3,6 +3,9 @@
 require_once __DIR__ . '/functions.php';
 $sessionId = session_id();
 $cart_count_nav = getCartCount($pdo, $sessionId);
+$loggedIn = isLoggedIn();
+$currentUser = currentUser();
+$isAdmin = isAdmin();
 ?>
 <nav class="navbar" role="navigation" aria-label="Main navigation">
     <div class="navbar-container">
@@ -18,7 +21,16 @@ $cart_count_nav = getCartCount($pdo, $sessionId);
                     <span class="cart-badge" aria-label="Number of items in cart"><?php echo intval($cart_count_nav); ?></span>
                 <?php endif; ?>
             </a>
-            <a href="admin.php" role="menuitem">Admin</a>
+            <?php if ($loggedIn): ?>
+                <?php if ($isAdmin): ?>
+                    <a href="admin.php" role="menuitem">Admin</a>
+                <?php endif; ?>
+                <a href="logout.php" role="menuitem">Logout</a>
+                <span class="nav-user">Hello, <?php echo esc($currentUser['name'] ?? 'Member'); ?></span>
+            <?php else: ?>
+                <a href="login.php" role="menuitem">Login</a>
+                <a href="register.php" role="menuitem">Register</a>
+            <?php endif; ?>
         </div>
     </div>
 </nav>

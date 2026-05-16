@@ -67,6 +67,7 @@ unset($_SESSION['cart_message']);
     <meta name="description" content="Premium Smartwatches - Shop the latest smartwatch collection with exclusive brands and models." />
     <meta name="keywords" content="smartwatch, apple watch, galaxy watch, wearable" />
     <title><?php echo esc(SITE_NAME); ?> - Premium Smartwatches</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-LZN37f6MItjnjim9xk4FzuvO1S1XwF+Yz8LgY3E6RN1HnIkp6E4xIC4qFjm69m2V" crossorigin="anonymous" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
@@ -95,10 +96,13 @@ unset($_SESSION['cart_message']);
 
     <section id="products" class="products-section" aria-label="Products Catalog">
         <h2>Our Collection</h2>
-        
+        <div class="mb-4">
+            <label for="searchInput" class="form-label visually-hidden">Search products</label>
+            <input id="searchInput" type="search" class="form-control form-control-lg" placeholder="Search by name, brand, or category" aria-label="Search products" />
+        </div>
         <div class="products-grid" role="list">
             <?php foreach ($products as $product): ?>
-                <article class="product-card" role="listitem" aria-label="<?php echo esc($product['name']); ?> by <?php echo esc($product['brand']); ?>">
+                <article class="product-card" data-search="<?php echo esc(strtolower($product['name'] . ' ' . $product['brand'] . ' ' . $product['category'])); ?>" role="listitem" aria-label="<?php echo esc($product['name']); ?> by <?php echo esc($product['brand']); ?>">
                     <div class="product-image">
                         <a href="product.php?id=<?php echo intval($product['id']); ?>" aria-label="View <?php echo esc($product['name']); ?> details">
                             <img src="<?php echo esc($product['image'] ?? 'placeholder-watch.jpg'); ?>" alt="<?php echo esc($product['name']); ?>" loading="lazy" />
@@ -164,11 +168,22 @@ unset($_SESSION['cart_message']);
 
 <?php include 'footer.php'; ?>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYpTPi32M30a5d6R08b0BfTT4yl7vHTER1Y1rVPo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6U5dORluXKokN8RyVb4Ydpe1w1P0j9Mbgq6Wv8Q6DkU2J/4x6rD" crossorigin="anonymous"></script>
 <script>
-// Smooth scroll for hero button
-document.querySelector('.hero a[href="#products"]')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+$(function() {
+    $('.hero a[href="#products"]').on('click', function(e) {
+        e.preventDefault();
+        document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    $('#searchInput').on('input', function() {
+        var query = $(this).val().toLowerCase();
+        $('.product-card').each(function() {
+            var text = $(this).data('search') || '';
+            $(this).toggle(text.indexOf(query) !== -1);
+        });
+    });
 });
 </script>
 

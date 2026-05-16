@@ -80,6 +80,13 @@ a:hover {
     color: var(--primary);
 }
 
+.nav-user {
+    color: #cbd5e1;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
 .cart-link {
     position: relative;
 }

@@ -24,6 +24,40 @@ function sanitize($input) {
     return htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
 }
 
+function isLoggedIn(): bool {
+    return !empty($_SESSION['user_id']);
+}
+
+function currentUser(): ?array {
+    if (!isLoggedIn()) {
+        return null;
+    }
+    return [
+        'id' => $_SESSION['user_id'],
+        'name' => $_SESSION['user_name'] ?? '',
+        'email' => $_SESSION['user_email'] ?? '',
+        'role' => $_SESSION['user_role'] ?? 'user',
+    ];
+}
+
+function isAdmin(): bool {
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+}
+
+function requireLogin(string $redirect = 'login.php'): void {
+    if (!isLoggedIn()) {
+        header('Location: login.php?redirect=' . urlencode($redirect));
+        exit;
+    }
+}
+
+function requireAdmin(): void {
+    if (!isAdmin()) {
+        header('Location: login.php?redirect=' . urlencode($_SERVER['PHP_SELF']));
+        exit;
+    }
+}
+
 // Sanitize for HTML display
 function esc($text) {
     return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
@@ -32,6 +66,44 @@ function esc($text) {
 // Validate email
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+}
+
+function generateVerificationCode(int $length = 6): string {
+    $code = '';
+    for ($i = 0; $i < $length; $i++) {
+        $code .= random_int(0, 9);
+    }
+    return $code;
+}
+
+function sendEmail(string $to, string $subject, string $body): bool {
+    $headers = [];
+    $headers[] = 'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_EMAIL . '>';
+    $headers[] = 'MIME-Version: 1.0';
+    $headers[] = 'Content-Type: text/html; charset=UTF-8';
+    return mail($to, $subject, $body, implode("\r\n", $headers));
+}
+
+function sendVerificationEmail(string $email, string $name, string $code): bool {
+    $subject = 'Verify your SmartWatch Hub account';
+    $url = SITE_URL . 'verify.php?email=' . urlencode($email) . '&code=' . urlencode($code);
+    $body = '<h2>Verify your email</h2>' .
+        '<p>Hi ' . esc($name) . ',</p>' .
+        '<p>Use the code below to verify your account:</p>' .
+        '<p style="font-size: 1.5rem; font-weight: bold;">' . esc($code) . '</p>' .
+        '<p>Or click this link:<br><a href="' . esc($url) . '">' . esc($url) . '</a></p>' .
+        '<p>If you did not register, please ignore this message.</p>';
+    return sendEmail($email, $subject, $body);
+}
+
+function sendLoginOTPEmail(string $email, string $name, string $code): bool {
+    $subject = 'Your SmartWatch Hub login code';
+    $body = '<h2>Your login code</h2>' .
+        '<p>Hi ' . esc($name) . ',</p>' .
+        '<p>Enter this code to sign in:</p>' .
+        '<p style="font-size: 1.5rem; font-weight: bold;">' . esc($code) . '</p>' .
+        '<p>This code expires in 15 minutes.</p>';
+    return sendEmail($email, $subject, $body);
 }
 
 // Validate phone

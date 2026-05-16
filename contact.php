@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contact Us - <?php echo esc(SITE_NAME); ?></title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-LZN37f6MItjnjim9xk4FzuvO1S1XwF+Yz8LgY3E6RN1HnIkp6E4xIC4qFjm69m2V" crossorigin="anonymous" />
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
@@ -144,10 +145,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         <?php endif; ?>
 
-        <form method="post" action="" novalidate>
+        <form id="contactForm" method="post" action="" novalidate>
             <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>" />
 
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="name">
                     Full Name <span class="required" aria-label="required">*</span>
                 </label>
@@ -155,6 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     type="text" 
                     id="name" 
                     name="name" 
+                    class="form-control" 
                     value="<?php echo esc($formData['name']); ?>" 
                     required 
                     aria-required="true"
@@ -199,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <small>Minimum 10 digits</small>
             </div>
 
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label for="favorite_model">
                     Which smartwatch model interests you? <span class="required" aria-label="required">*</span>
                 </label>
@@ -207,6 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     type="text" 
                     id="favorite_model" 
                     name="favorite_model" 
+                    class="form-control" 
                     value="<?php echo esc($formData['favorite_model']); ?>" 
                     required 
                     aria-required="true"
@@ -241,11 +244,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <small>Minimum 10 characters, maximum 1000</small>
             </div>
 
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">
+            <div class="form-actions d-flex flex-column flex-sm-row gap-3">
+                <button type="submit" class="btn btn-primary w-100">
                     <i class="fas fa-paper-plane"></i> Send Message
                 </button>
-                <button type="reset" class="btn btn-outline">
+                <button type="reset" class="btn btn-outline-secondary w-100">
                     <i class="fas fa-redo"></i> Clear
                 </button>
             </div>
@@ -266,5 +269,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <?php include 'footer.php'; ?>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-3gJwYpTPi32M30a5d6R08b0BfTT4yl7vHTER1Y1rVPo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6U5dORluXKokN8RyVb4Ydpe1w1P0j9Mbgq6Wv8Q6DkU2J/4x6rD" crossorigin="anonymous"></script>
+<script>
+$(function() {
+    $('#contactForm').on('submit', function(e) {
+        var errors = [];
+        var name = $('#name').val().trim();
+        var email = $('#email').val().trim();
+        var phone = $('#phone').val().trim();
+        var favoriteModel = $('#favorite_model').val().trim();
+        var message = $('#message').val().trim();
+
+        if (name.length < 2) {
+            errors.push('Full name must be at least 2 characters.');
+        }
+        if (!email || email.indexOf('@') === -1) {
+            errors.push('Please enter a valid email address.');
+        }
+        if (phone.replace(/\D/g, '').length < 10) {
+            errors.push('Phone number must contain at least 10 digits.');
+        }
+        if (favoriteModel.length < 2) {
+            errors.push('Please include the smartwatch model you are interested in.');
+        }
+        if (message.length < 10) {
+            errors.push('Message must be at least 10 characters long.');
+        }
+
+        if (errors.length) {
+            e.preventDefault();
+            alert(errors.join('\n'));
+        }
+    });
+});
+</script>
 </body>
 </html>

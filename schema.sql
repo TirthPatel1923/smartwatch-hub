@@ -46,6 +46,28 @@ CREATE TABLE IF NOT EXISTS `user_submissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Customer contact form submissions';
 
 -- =====================================================
+-- USERS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY COMMENT 'User unique identifier',
+    `name` VARCHAR(100) NOT NULL COMMENT 'Full name',
+    `email` VARCHAR(150) NOT NULL UNIQUE COMMENT 'Email address',
+    `password` VARCHAR(255) NOT NULL COMMENT 'Hashed password',
+    `role` ENUM('admin','user') NOT NULL DEFAULT 'user' COMMENT 'Role for access control',
+    `email_verified` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Has the user verified their email?',
+    `verification_code` VARCHAR(100) DEFAULT NULL COMMENT 'Email verification or activation code',
+    `verification_expires` DATETIME DEFAULT NULL COMMENT 'Expiration time for verification code',
+    `otp_code` VARCHAR(10) DEFAULT NULL COMMENT 'One-time login code',
+    `otp_expires` DATETIME DEFAULT NULL COMMENT 'Expiration time for OTP code',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Record creation timestamp',
+
+    KEY `idx_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Registered users and access roles';
+
+INSERT INTO `users` (`name`, `email`, `password`, `role`) VALUES
+('Administrator', 'admin@example.com', '$2y$10$zkCd0cuKAZWS19rjHtkobOVTEbDtVexHpsklJ6v9XT6S39q8DgeZi', 'admin');
+
+-- =====================================================
 -- ORDERS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS `orders` (

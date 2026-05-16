@@ -39,6 +39,60 @@ try {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     );
 
+    // Users table for authentication and role-based access
+    $pdo->exec(
+        "CREATE TABLE IF NOT EXISTS `users` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `name` VARCHAR(100) NOT NULL,
+            `email` VARCHAR(150) NOT NULL UNIQUE,
+            `password` VARCHAR(255) NOT NULL,
+            `role` ENUM('admin','user') NOT NULL DEFAULT 'user',
+            `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
+            `verification_code` VARCHAR(100) DEFAULT NULL,
+            `verification_expires` DATETIME DEFAULT NULL,
+            `otp_code` VARCHAR(10) DEFAULT NULL,
+            `otp_expires` DATETIME DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+
+    // Seed default administrator account if it does not exist
+    $adminEmail = 'admin@example.com';
+    $adminPasswordHash = password_hash('Admin@123', PASSWORD_DEFAULT);
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM users WHERE email = ?");
+    $stmt->execute([$adminEmail]);
+    if ($stmt->fetchColumn() == 0) {
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role, email_verified) VALUES (?, ?, ?, 'admin', 1)");
+        $stmt->execute(['Administrator', $adminEmail, $adminPasswordHash]);
+    }
+
+    // Add missing user verification columns if table already exists
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN email_verified TINYINT(1) NOT NULL DEFAULT 0");
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN verification_code VARCHAR(100) DEFAULT NULL");
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN verification_expires DATETIME DEFAULT NULL");
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN otp_code VARCHAR(10) DEFAULT NULL");
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+    try {
+        $pdo->exec("ALTER TABLE users ADD COLUMN otp_expires DATETIME DEFAULT NULL");
+    } catch (Exception $e) {
+        // Column might already exist
+    }
+
     // Add unique key on name if not exists
     try {
         $pdo->exec("ALTER TABLE products ADD UNIQUE KEY unique_name (name)");
