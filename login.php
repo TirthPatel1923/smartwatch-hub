@@ -19,88 +19,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
         $errors[] = 'CSRF token validation failed. Please refresh the page and try again.';
     } else {
-        $action = $_POST['action'] ?? 'login_password';
         $email = trim($_POST['email'] ?? '');
+        $password = trim($_POST['password'] ?? '');
 
         if (empty($email) || !isValidEmail($email)) {
             $errors[] = 'Please enter a valid email address.';
         }
+        if (empty($password)) {
+            $errors[] = 'Please enter your password.';
+        }
 
-        $user = $userModel->findByEmail($email);
+        if (empty($errors)) {
+            $user = $userModel->verifyCredentials($email, $password);
+            if (!$user) {
+                $errors[] = 'Invalid email or password. Please try again.';
+            } else {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['user_role'] = $user['role'];
+                $_SESSION['last_active'] = time();
 
-        if ($action === 'send_otp') {
-            if (empty($errors)) {
-                if (!$user) {
-                    $info = 'If the email is registered, a login code will be sent shortly.';
-                } elseif (!$user['email_verified']) {
-                    $code = generateVerificationCode();
-                    $expires = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
-                    $stmt = $pdo->prepare("UPDATE users SET verification_code = ?, verification_expires = ? WHERE id = ?");
-                    $stmt->execute([$code, $expires, $user['id']]);
-                    sendVerificationEmail($email, $user['name'], $code);
-                    $info = 'Your account is not verified yet. A verification code has been sent to your email.';
-                } else {
-                    $otp = generateVerificationCode();
-                    $expires = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
-                    $stmt = $pdo->prepare("UPDATE users SET otp_code = ?, otp_expires = ? WHERE id = ?");
-                    $stmt->execute([$otp, $expires, $user['id']]);
-                    if (sendLoginOTPEmail($email, $user['name'], $otp)) {
-                        $info = 'A one-time login code has been sent to your email address.';
-                    } else {
-                        $info = 'A login code was generated. Please check your email; if email delivery is not configured, use the code: ' . esc($otp);
-                    }
-                }
-            }
-        } elseif ($action === 'verify_otp') {
-            $otp = trim($_POST['otp'] ?? '');
-            if (empty($otp)) {
-                $errors[] = 'Please enter the OTP code sent to your email.';
-            }
-            if (empty($errors)) {
-                if (!$user || $user['otp_code'] !== $otp) {
-                    $errors[] = 'Invalid OTP code. Please check your email and try again.';
-                } elseif (new DateTime() > new DateTime($user['otp_expires'])) {
-                    $errors[] = 'The OTP code has expired. Please request a new code.';
-                } else {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_name'] = $user['name'];
-                    $_SESSION['user_email'] = $user['email'];
-                    $_SESSION['user_role'] = $user['role'];
-                    $_SESSION['last_active'] = time();
-
-                    $stmt = $pdo->prepare("UPDATE users SET otp_code = NULL, otp_expires = NULL WHERE id = ?");
-                    $stmt->execute([$user['id']]);
-
-                    header('Location: ' . $redirect);
-                    exit;
-                }
-            }
-        } else {
-            $password = trim($_POST['password'] ?? '');
-            if (empty($password)) {
-                $errors[] = 'Please enter your password.';
-            }
-            if (empty($errors)) {
-                $user = $userModel->verifyCredentials($email, $password);
-                if (!$user) {
-                    $errors[] = 'Invalid email or password. Please try again.';
-                } elseif (!$user['email_verified']) {
-                    $code = generateVerificationCode();
-                    $expires = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
-                    $stmt = $pdo->prepare("UPDATE users SET verification_code = ?, verification_expires = ? WHERE id = ?");
-                    $stmt->execute([$code, $expires, $user['id']]);
-                    sendVerificationEmail($email, $user['name'], $code);
-                    $errors[] = 'Your email address is not verified. We have sent a verification code to your email.';
-                } else {
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_name'] = $user['name'];
-                    $_SESSION['user_email'] = $user['email'];
-                    $_SESSION['user_role'] = $user['role'];
-                    $_SESSION['last_active'] = time();
-
-                    header('Location: ' . $redirect);
-                    exit;
-                }
+                header('Location: ' . $redirect);
+                exit;
             }
         }
     }
@@ -156,33 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="password" class="form-control" id="password" name="password" required aria-required="true" placeholder="Enter your password" />
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-
-        <hr class="my-4" />
-
-        <h2 class="h5 mb-3 text-center">Login with Email Code</h2>
-        <form id="otpRequestForm" method="post" novalidate>
-            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>" />
-            <input type="hidden" name="action" value="send_otp" />
-            <div class="mb-3">
-                <label for="email_otp" class="form-label">Email address</label>
-                <input type="email" class="form-control" id="email_otp" name="email" value="<?php echo esc($email); ?>" required aria-required="true" placeholder="name@example.com" />
-            </div>
-            <button type="submit" class="btn btn-outline-primary w-100">Send login code</button>
-        </form>
-
-        <form id="otpVerifyForm" method="post" class="mt-3" novalidate>
-            <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>" />
-            <input type="hidden" name="action" value="verify_otp" />
-            <div class="mb-3">
-                <label for="email_verify" class="form-label">Email address</label>
-                <input type="email" class="form-control" id="email_verify" name="email" value="<?php echo esc($email); ?>" required aria-required="true" placeholder="name@example.com" />
-            </div>
-            <div class="mb-3">
-                <label for="otp" class="form-label">Enter OTP code</label>
-                <input type="text" class="form-control" id="otp" name="otp" placeholder="123456" maxlength="6" />
-            </div>
-            <button type="submit" class="btn btn-secondary w-100">Verify OTP</button>
         </form>
 
         <p class="text-center text-muted mt-3 mb-0">Don't have an account? <a href="register.php">Register now</a></p>

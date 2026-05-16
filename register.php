@@ -44,16 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 if ($userModel->create($name, $email, $password, 'user')) {
                     $userId = $pdo->lastInsertId();
-                    $code = generateVerificationCode();
-                    $expires = (new DateTime('+15 minutes'))->format('Y-m-d H:i:s');
-                    $stmt = $pdo->prepare("UPDATE users SET verification_code = ?, verification_expires = ? WHERE id = ?");
-                    $stmt->execute([$code, $expires, $userId]);
-
-                    if (sendVerificationEmail($email, $name, $code)) {
-                        $success = 'Registration successful. A verification code has been sent to your email address.';
-                    } else {
-                        $success = 'Registration successful. Please verify your email address using the code: ' . esc($code);
-                    }
+                    $stmt = $pdo->prepare("UPDATE users SET email_verified = 1 WHERE id = ?");
+                    $stmt->execute([$userId]);
+                    $success = 'Registration successful. You can now log in.';
                 } else {
                     $errors[] = 'Unable to register your account at this time. Please try again later.';
                 }

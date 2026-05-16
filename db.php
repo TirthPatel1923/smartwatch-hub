@@ -48,10 +48,6 @@ try {
             `password` VARCHAR(255) NOT NULL,
             `role` ENUM('admin','user') NOT NULL DEFAULT 'user',
             `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
-            `verification_code` VARCHAR(100) DEFAULT NULL,
-            `verification_expires` DATETIME DEFAULT NULL,
-            `otp_code` VARCHAR(10) DEFAULT NULL,
-            `otp_expires` DATETIME DEFAULT NULL,
             `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     );
@@ -66,29 +62,9 @@ try {
         $stmt->execute(['Administrator', $adminEmail, $adminPasswordHash]);
     }
 
-    // Add missing user verification columns if table already exists
+    // Ensure `email_verified` exists when migrating older schemas
     try {
         $pdo->exec("ALTER TABLE users ADD COLUMN email_verified TINYINT(1) NOT NULL DEFAULT 0");
-    } catch (Exception $e) {
-        // Column might already exist
-    }
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN verification_code VARCHAR(100) DEFAULT NULL");
-    } catch (Exception $e) {
-        // Column might already exist
-    }
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN verification_expires DATETIME DEFAULT NULL");
-    } catch (Exception $e) {
-        // Column might already exist
-    }
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN otp_code VARCHAR(10) DEFAULT NULL");
-    } catch (Exception $e) {
-        // Column might already exist
-    }
-    try {
-        $pdo->exec("ALTER TABLE users ADD COLUMN otp_expires DATETIME DEFAULT NULL");
     } catch (Exception $e) {
         // Column might already exist
     }

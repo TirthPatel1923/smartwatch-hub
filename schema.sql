@@ -55,10 +55,6 @@ CREATE TABLE IF NOT EXISTS `users` (
     `password` VARCHAR(255) NOT NULL COMMENT 'Hashed password',
     `role` ENUM('admin','user') NOT NULL DEFAULT 'user' COMMENT 'Role for access control',
     `email_verified` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Has the user verified their email?',
-    `verification_code` VARCHAR(100) DEFAULT NULL COMMENT 'Email verification or activation code',
-    `verification_expires` DATETIME DEFAULT NULL COMMENT 'Expiration time for verification code',
-    `otp_code` VARCHAR(10) DEFAULT NULL COMMENT 'One-time login code',
-    `otp_expires` DATETIME DEFAULT NULL COMMENT 'Expiration time for OTP code',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Record creation timestamp',
 
     KEY `idx_email` (`email`)
