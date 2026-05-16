@@ -49,3 +49,5 @@ ehthumbs.db
 *.backup
 *.bak
 style.css.backup
+# Local PHP config - do not commit
+php.ini

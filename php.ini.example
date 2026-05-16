@@ -1,4 +1,4 @@
-# PHP Configuration for SmartWatch Hub
+# PHP Configuration for SmartWatch Hub (example)
 
 # Display errors (set to Off in production)
 display_errors = On
@@ -25,3 +25,6 @@ date.timezone = UTC
 
 # Output buffering
 output_buffering = 4096
+
+# NOTE: Do NOT commit a personalized php.ini to the repository. Rename this file to
+# php.ini locally on your machine if you need to override PHP settings for development.
