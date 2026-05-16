@@ -1,0 +1,9 @@
+{
+  "name": "tirth/smartwatch-hub",
+  "description": "SmartWatch Hub - web store",
+  "require": {
+    "phpmailer/phpmailer": "^6.8"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
