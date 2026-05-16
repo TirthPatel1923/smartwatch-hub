@@ -51,3 +51,7 @@ ehthumbs.db
 style.css.backup
 # Local PHP config - do not commit
 php.ini
+
+# Composer files
+composer.phar
+composer-setup.php
