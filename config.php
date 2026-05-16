@@ -35,6 +35,41 @@ function env(string $key, $default = null)
     return $value === false ? $default : $value;
 }
 
+function parseDatabaseUrl(string $url): array
+{
+    $parts = parse_url($url);
+    if (!$parts) {
+        return [];
+    }
+    return [
+        'host' => $parts['host'] ?? '',
+        'port' => $parts['port'] ?? '',
+        'user' => $parts['user'] ?? '',
+        'pass' => $parts['pass'] ?? '',
+        'path' => isset($parts['path']) ? ltrim($parts['path'], '/') : '',
+    ];
+}
+
+$databaseUrl = env('DATABASE_URL', env('MYSQL_URL', ''));
+if ($databaseUrl && env('DB_HOST', '') === '') {
+    $parsedDbUrl = parseDatabaseUrl($databaseUrl);
+    if (!empty($parsedDbUrl['host'])) {
+        $_ENV['DB_HOST'] = $parsedDbUrl['host'];
+    }
+    if (!empty($parsedDbUrl['port'])) {
+        $_ENV['DB_PORT'] = $parsedDbUrl['port'];
+    }
+    if (!empty($parsedDbUrl['user'])) {
+        $_ENV['DB_USER'] = $parsedDbUrl['user'];
+    }
+    if (!empty($parsedDbUrl['pass'])) {
+        $_ENV['DB_PASS'] = $parsedDbUrl['pass'];
+    }
+    if (!empty($parsedDbUrl['path'])) {
+        $_ENV['DB_NAME'] = $parsedDbUrl['path'];
+    }
+}
+
 define('DB_HOST', env('DB_HOST', '127.0.0.1'));
 define('DB_PORT', env('DB_PORT', 3306));
 define('DB_NAME', env('DB_NAME', 'smartwatch_db'));
