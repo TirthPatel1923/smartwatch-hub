@@ -77,6 +77,40 @@ function generateVerificationCode(int $length = 6): string {
 }
 
 function sendEmail(string $to, string $subject, string $body): bool {
+    // Use SMTP via PHPMailer when MAIL_HOST is configured and composer autoload exists
+    $mailHost = env('MAIL_HOST', '');
+    if ($mailHost && file_exists(__DIR__ . '/vendor/autoload.php')) {
+        require_once __DIR__ . '/vendor/autoload.php';
+        if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+            try {
+                $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = $mailHost;
+                $mail->SMTPAuth = (bool) env('MAIL_SMTP_AUTH', true);
+                $mail->Username = env('MAIL_USERNAME', '');
+                $mail->Password = env('MAIL_PASSWORD', '');
+                $mail->SMTPSecure = env('MAIL_ENCRYPTION', 'tls');
+                $mail->Port = (int) env('MAIL_PORT', 587);
+                if ((bool) env('MAIL_DEBUG', false)) {
+                    $mail->SMTPDebug = 2;
+                }
+                $mail->setFrom(MAIL_FROM_EMAIL, MAIL_FROM_NAME);
+                $mail->addAddress($to);
+                $mail->isHTML(true);
+                $mail->Subject = $subject;
+                $mail->Body = $body;
+                $mail->send();
+                return true;
+            } catch (Throwable $e) {
+                error_log('PHPMailer error: ' . $e->getMessage());
+                // fall through to mail() fallback
+            }
+        } else {
+            error_log('PHPMailer class not found after autoload.');
+        }
+    }
+
+    // Fallback to PHP mail()
     $headers = [];
     $headers[] = 'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_EMAIL . '>';
     $headers[] = 'MIME-Version: 1.0';
