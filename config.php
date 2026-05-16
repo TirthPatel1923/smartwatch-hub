@@ -49,12 +49,12 @@ define('CURRENCY', env('CURRENCY', '$'));
 define('MAIL_FROM_EMAIL', env('MAIL_FROM_EMAIL', 'noreply@smartwatchhub.local'));
 define('MAIL_FROM_NAME', env('MAIL_FROM_NAME', 'SmartWatch Hub'));
 // Security & Session
-define('SESSION_NAME', $_ENV['SESSION_NAME'] ?? 'smartwatch_session');
-define('SESSION_LIFETIME', $_ENV['SESSION_LIFETIME'] ?? 3600);
+define('SESSION_NAME', env('SESSION_NAME', 'smartwatch_session'));
+define('SESSION_LIFETIME', env('SESSION_LIFETIME', 3600));
 
 // Application settings
-define('ENVIRONMENT', $_ENV['ENVIRONMENT'] ?? 'development');
-define('DEBUG', (strtolower($_ENV['DEBUG'] ?? 'false') === 'true'));
+define('ENVIRONMENT', env('ENVIRONMENT', 'development'));
+define('DEBUG', (strtolower(env('DEBUG', 'false')) === 'true'));
 
 // Session configuration
 if (session_status() === PHP_SESSION_NONE) {
